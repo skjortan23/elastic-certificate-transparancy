@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"context"
+	"golang.org/x/net/context"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
@@ -17,9 +17,8 @@ import (
 	"net/url"
 	"os"
 	"reflect"
-	"strconv"
 	"time"
-
+	"github.com/akamensky/argparse"
 	"github.com/labstack/gommon/log"
 	elastic "gopkg.in/olivere/elastic.v5"
 )
@@ -291,18 +290,13 @@ func loadTlds() map[string]bool {
 }
 
 func main() {
+	parser := argparse.NewParser("ct", "index certificate stuff")
+	cturl := parser.String("u", "cturl", &argparse.Options{Required: true, Help: "url to ct log server"})
 	start := 0
-	cturl := "https://ct.googleapis.com/rocketeer/"
+	//start := parser.Integer("i", "index-start", &argparse.Options{Required: false, Help: "index to start at"})
+	err := parser.Parse(os.Args)
 
-	if s := os.Getenv("START"); s == "" {
-	} else if v, err := strconv.Atoi(s); err != nil {
-		fmt.Println(err.Error())
-		return
-	} else {
-		start = v
-	}
-
-	client, err := New(cturl)
+	client, err := New(*cturl)
 	if err != nil {
 		panic(err)
 	}
